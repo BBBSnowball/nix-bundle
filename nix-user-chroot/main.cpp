@@ -179,6 +179,11 @@ int main(int argc, char *argv[]) {
     err_exit("mkdtemp(%s)", template_);
   }
 
+  if (!enable_escape_hatch) {
+    // No reason for forking, I think.
+    return child_proc(rootdir, nixdir, clear_env, dirMappings, envMappings, argv[optind], argv + optind);
+  }
+
   int unrace[2];
 
   if (pipe(unrace)) {
