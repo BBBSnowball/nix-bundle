@@ -22,9 +22,9 @@ in rec {
     # in the context automatically.
     else "${target}";
 
-  arx = { archive, startup}:
+  arx = { archive, startup, name ? "arx" }:
     stdenv.mkDerivation {
-      name = "arx";
+      inherit name;
       buildCommand = ''
         ${arx'}/bin/arx tmpx --shared -rm! ${archive} -o $out // ${startup}
         chmod +x $out
@@ -74,9 +74,9 @@ in rec {
     meta.platforms = lib.platforms.linux;
   };
 
-  makebootstrap = { targets, startup }:
+  makebootstrap = { targets, startup, name ? "arx" }:
     arx {
-      inherit startup;
+      inherit name startup;
       archive = maketar {
         inherit targets;
       };
@@ -92,10 +92,13 @@ in rec {
     exec .${nix-user-chroot'}/bin/nix-user-chroot -n ./nix ${nixUserChrootFlags} -- ${path}${run} "$@"
   '';
 
-  nix-bootstrap = { target, extraTargets ? [], run, nix-user-chroot' ? nix-user-chroot, nixUserChrootFlags ? "", ... }:
+  defaultName = path: with builtins; baseNameOf (unsafeDiscardStringContext path) + "-bundle";
+
+  nix-bootstrap = { target, extraTargets ? [], run, nix-user-chroot' ? nix-user-chroot, nixUserChrootFlags ? "", name ? defaultName "${target}${run}", ... }:
     let
       script = makeStartup { inherit target nixUserChrootFlags nix-user-chroot' run; };
     in makebootstrap {
+      inherit name;
       startup = ".${script} '\"$@\"'";
       targets = [ "${script}" ] ++ extraTargets;
     };
