@@ -8,9 +8,9 @@
     forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
   in {
     bundlers = {
-      nix-bundle = { program, system }: let
+      nix-bundle = { program, system, ... }@args: let
         nixpkgs' = nixpkgs.legacyPackages.${system};
-        nix-bundle = import self { nixpkgs = nixpkgs'; };
+        nix-bundle = import self ({ nixpkgs = nixpkgs'; } // builtins.removeAttrs args [ "program" "system" ]);
         script = nixpkgs'.writeScript "startup" ''
           #!/bin/sh
           exec .${nix-bundle.nix-user-chroot}/bin/nix-user-chroot -n ./nix -- ${program} "$@"
