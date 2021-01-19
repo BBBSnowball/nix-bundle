@@ -1,6 +1,7 @@
 { nixpkgs ? import <nixpkgs> {}
 , rsyncable ? false
-, compression ? if rsyncable then "gzip --rsyncable" else "bzip2 -z" }:
+, compression ? if rsyncable then "gzip --rsyncable" else "bzip2 -z"
+, ... }:
 
 with nixpkgs;
 
@@ -91,7 +92,7 @@ in rec {
     exec .${nix-user-chroot'}/bin/nix-user-chroot -n ./nix ${nixUserChrootFlags} -- ${path}${run} "$@"
   '';
 
-  nix-bootstrap = { target, extraTargets ? [], run, nix-user-chroot' ? nix-user-chroot, nixUserChrootFlags ? "" }:
+  nix-bootstrap = { target, extraTargets ? [], run, nix-user-chroot' ? nix-user-chroot, nixUserChrootFlags ? "", ... }:
     let
       script = makeStartup { inherit target nixUserChrootFlags nix-user-chroot' run; };
     in makebootstrap {

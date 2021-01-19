@@ -10,15 +10,8 @@
     bundlers = {
       nix-bundle = { program, system, ... }@args: let
         nixpkgs' = nixpkgs.legacyPackages.${system};
-        nix-bundle = import self ({ nixpkgs = nixpkgs'; } // builtins.removeAttrs args [ "program" "system" ]);
-        script = nixpkgs'.writeScript "startup" ''
-          #!/bin/sh
-          exec .${nix-bundle.nix-user-chroot}/bin/nix-user-chroot -n ./nix -- ${program} "$@"
-        '';
-      in nix-bundle.makebootstrap {
-        targets = [ script ];
-        startup = ".${builtins.unsafeDiscardStringContext script} '\"$@\"'";
-      };
+        nix-bundle = import self ({ nixpkgs = nixpkgs'; } // args);
+      in nix-bundle.nix-bootstrap ({ target = program; run = ""; } // args);
     };
 
     defaultBundler = self.bundlers.nix-bundle;
